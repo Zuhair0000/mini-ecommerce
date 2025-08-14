@@ -1,6 +1,7 @@
+// middleware/auth.js
 const jwt = require("jsonwebtoken");
 
-export const verifyToken = (req, res, next) => {
+const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) return res.status(401).json({ message: "No token provided" });
 
@@ -11,9 +12,11 @@ export const verifyToken = (req, res, next) => {
   });
 };
 
-export const isAdmin = (req, res, next) => {
+const isAdmin = (req, res, next) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Admin access only" });
   }
   next();
 };
+
+module.exports = { verifyToken, isAdmin };
