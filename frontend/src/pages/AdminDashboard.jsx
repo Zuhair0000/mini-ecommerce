@@ -1,146 +1,240 @@
-import React, { useEffect, useState } from "react";
+// src/pages/AdminProducts.jsx
+import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 
-export default function AdminDashboard() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [expandedOrderId, setExpandedOrderId] = useState(null);
+export default function AdminProducts() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentProductId, setCurrentProductId] = useState(null);
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+  const initialForm = { name: "", description: "", price: "", image_url: "" };
+  const [formData, setFormData] = useState(initialForm);
 
-  const fetchOrders = async () => {
+  const [products, setProducts] = useState([]);
+
+  const fetchProducts = async () => {
     try {
-      const res = await fetch("http://localhost:3001/api/admin/", {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch("http://localhost:3001/api/products");
+      if (!res.ok) throw new Error("Failed to fetch products");
       const data = await res.json();
-      setOrders(data || []);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-    } finally {
-      setLoading(false);
+      setProducts(data);
+    } catch (err) {
+      console.error(err);
+      alert("Error fetching products");
     }
   };
 
-  const handleStatusChange = async (orderId, newStatus) => {
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddProduct = async () => {
     try {
-      await fetch(`http://localhost:3001/api/admin/${orderId}/status`, {
+      const res = await fetch("http://localhost:3001/api/products", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setProducts([...products, data]);
+        handleCloseModal();
+      } else {
+        alert(data.message || "Failed to add product");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleEditProduct = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:3001/api/products/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ newStatus }),
+        body: JSON.stringify(formData),
       });
-
-      setOrders((prev) =>
-        prev.map((order) =>
-          order.order_id === orderId ? { ...order, status: newStatus } : order
-        )
-      );
-    } catch (error) {
-      console.error("Error updating status:", error);
+      const data = await res.json();
+      if (res.ok) {
+        setProducts(
+          products.map((p) => (p.id === id ? { ...p, ...formData } : p))
+        );
+        handleCloseModal();
+      } else {
+        alert(data.message || "Failed to update product");
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  if (loading) {
-    return <p className="text-center py-10">Loading orders...</p>;
-  }
+  const handleDeleteProduct = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:3001/api/products/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setProducts(products.filter((p) => p.id !== id));
+      } else {
+        alert(data.message || "Failed to delete product");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleOpenModal = (edit = false, product = null) => {
+    setIsEditMode(edit);
+    setIsModalOpen(true);
+
+    if (edit && product) {
+      setCurrentProductId(product.id);
+      setFormData({
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        image_url: product.image_url || "",
+      });
+    } else {
+      setCurrentProductId(null);
+      setFormData(initialForm);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setIsEditMode(false);
+    setFormData(initialForm);
+  };
 
   return (
     <>
       <Navbar />
-      <div className="p-6 max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">📦 All Orders</h1>
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-6">Products Management</h1>
 
-        {orders.length === 0 ? (
-          <p className="text-gray-500">No orders found.</p>
-        ) : (
-          <div className="overflow-x-auto bg-white rounded-xl shadow-lg border border-gray-200">
-            <table className="min-w-full text-sm text-left">
-              <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
-                <tr>
-                  <th className="px-5 py-3">Order ID</th>
-                  <th className="px-5 py-3">Customer</th>
-                  <th className="px-5 py-3">Date</th>
-                  <th className="px-5 py-3">Total</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3 text-center">Actions</th>
+        <button
+          onClick={() => handleOpenModal(false)}
+          className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          + Add Product
+        </button>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-gray-200 bg-white shadow-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-2 border">ID</th>
+                <th className="px-4 py-2 border">Name</th>
+                <th className="px-4 py-2 border">Price</th>
+                <th className="px-4 py-2 border">Description</th>
+                <th className="px-4 py-2 border">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((product) => (
+                <tr key={product.id} className="hover:bg-gray-50">
+                  <td className="border px-4 py-2">{product.id}</td>
+                  <td className="border px-4 py-2">{product.name}</td>
+                  <td className="border px-4 py-2">${product.price}</td>
+                  <td className="border px-4 py-2">{product.description}</td>
+                  <td className="border px-4 py-2 space-x-2">
+                    <button
+                      onClick={() => handleOpenModal(true, product)}
+                      className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(product.id)}
+                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {orders.map((order) => (
-                  <React.Fragment key={order.order_id}>
-                    <tr className="hover:bg-gray-50 border-b border-gray-200">
-                      <td className="px-5 py-3 font-medium text-gray-800">
-                        #{order.order_id}
-                      </td>
-                      <td className="px-5 py-3">{order.customer_name}</td>
-                      <td className="px-5 py-3">
-                        {new Date(order.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-5 py-3 font-semibold text-green-600">
-                        ${order.total_price}
-                      </td>
-                      <td className="px-5 py-3">
-                        <select
-                          value={order.status}
-                          onChange={(e) =>
-                            handleStatusChange(order.order_id, e.target.value)
-                          }
-                          className="border rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="shipped">Shipped</option>
-                          <option value="delivered">Delivered</option>
-                        </select>
-                      </td>
-                      <td className="px-5 py-3 text-center">
-                        <button
-                          onClick={() =>
-                            setExpandedOrderId(
-                              expandedOrderId === order.order_id
-                                ? null
-                                : order.order_id
-                            )
-                          }
-                          className="text-blue-500 hover:underline font-medium"
-                        >
-                          {expandedOrderId === order.order_id
-                            ? "Hide"
-                            : "View Items"}
-                        </button>
-                      </td>
-                    </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-                    {expandedOrderId === order.order_id && order.items && (
-                      <tr className="bg-gray-50">
-                        <td colSpan="6" className="px-6 py-4">
-                          <h3 className="font-semibold mb-2">🛒 Order Items</h3>
-                          <div className="space-y-1">
-                            {order.items.map((item, index) => (
-                              <div
-                                key={`${order.order_id}-${index}`}
-                                className="flex justify-between text-sm border-b pb-1"
-                              >
-                                <span>{item.product_name}</span>
-                                <span>
-                                  {item.quantity} × ${item.price}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
+        {isModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-96">
+              <h2 className="text-xl font-semibold mb-4">
+                {isEditMode ? "Edit Product" : "Add Product"}
+              </h2>
+              <form className="space-y-4">
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Product Name"
+                  className="w-full border rounded px-3 py-2"
+                  value={formData.name}
+                  onChange={handleChange}
+                />
+                <input
+                  type="number"
+                  name="price"
+                  placeholder="Price"
+                  className="w-full border rounded px-3 py-2"
+                  value={formData.price}
+                  onChange={handleChange}
+                />
+
+                <textarea
+                  name="description"
+                  placeholder="Description"
+                  className="w-full border rounded px-3 py-2"
+                  value={formData.description}
+                  onChange={handleChange}
+                ></textarea>
+
+                <input
+                  type="text"
+                  name="image_url"
+                  placeholder="Image URL"
+                  className="w-full border rounded px-3 py-2"
+                  value={formData.image_url}
+                  onChange={handleChange}
+                />
+
+                <div className="flex justify-end space-x-2">
+                  <button
+                    type="button"
+                    onClick={handleCloseModal}
+                    className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    onClick={() =>
+                      isEditMode
+                        ? handleEditProduct(currentProductId)
+                        : handleAddProduct()
+                    }
+                  >
+                    {isEditMode ? "Update" : "Add"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
       </div>

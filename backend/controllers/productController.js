@@ -52,11 +52,6 @@ exports.updateProduct = async (req, res) => {
   const role = req.user.role;
 
   try {
-    if (role !== "admin") {
-      return res
-        .status(403)
-        .json({ message: "Only admins are allowed to update" });
-    }
     const [result] = await db.query("SELECT * FROM products WHERE id = ?", [
       id,
     ]);
@@ -76,14 +71,8 @@ exports.updateProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
   const { id } = req.params;
-  const role = req.user.role;
 
   try {
-    if (role !== "admin") {
-      return res
-        .status(403)
-        .json({ message: "Only admins are allowed to update" });
-    }
     const [result] = await db.query("SELECT * FROM products WHERE id = ?", [
       id,
     ]);
