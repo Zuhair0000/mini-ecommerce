@@ -105,11 +105,6 @@ export default function Cart() {
                 className="flex items-center justify-between bg-white p-4 rounded-lg shadow"
               >
                 <div className="flex items-center gap-4">
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-16 h-16 object-cover rounded"
-                  />
                   <div>
                     <h3 className="font-semibold text-gray-800">{item.name}</h3>
                     <p className="text-gray-600">${item.price.toFixed(2)}</p>

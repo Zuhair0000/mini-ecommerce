@@ -37,7 +37,6 @@ export default function ProductsTab() {
       const res = await fetch("http://localhost:3001/api/products", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
@@ -200,9 +199,9 @@ export default function ProductsTab() {
               ></textarea>
 
               <input
-                type="text"
+                type="file"
                 name="image_url"
-                placeholder="Image URL"
+                accept="image/*"
                 className="w-full border rounded px-3 py-2"
                 value={formData.image_url}
                 onChange={handleChange}

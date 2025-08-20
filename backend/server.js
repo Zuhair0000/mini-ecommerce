@@ -20,6 +20,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/order", orderRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/uploads", express.static("uploads"));
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

@@ -33,7 +33,11 @@ const ProductCard = ({ product }) => {
   return (
     <div className="border rounded-lg p-4 shadow hover:shadow-lg transition duration-200 flex flex-col items-center">
       <img
-        src={product.image_url}
+        src={
+          product.image_url
+            ? `http://localhost:3001${product.image_url}`
+            : "https://via.placeholder.com/300x200?text=No+Image"
+        }
         alt={product.name}
         className="w-full h-40 object-cover rounded"
       />
