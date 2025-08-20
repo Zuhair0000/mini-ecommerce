@@ -49,6 +49,6 @@ This project is a simplified online store where admins can manage products and u
   
   <img width="1688" height="555" alt="Screenshot 2025-08-20 at 6 37 37 PM" src="https://github.com/user-attachments/assets/fd3161ee-40d7-43d5-9984-2afb5fc28a6a" />
 
--Admin Orders Management
+- Admin Orders Management
 
   <img width="1688" height="563" alt="Screenshot 2025-08-20 at 6 38 03 PM" src="https://github.com/user-attachments/assets/ed3b0d79-68c6-4ff0-86c5-ad6e1d1a4143" />
