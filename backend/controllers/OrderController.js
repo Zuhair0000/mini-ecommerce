@@ -100,9 +100,11 @@ exports.getOrderDetails = async (req, res) => {
       if (!existingOrder) {
         existingOrder = {
           order_id: row.order_id,
+          product_name: row.product_name,
           customer_name: row.customer_name,
           total_price: row.total_price,
           status: row.status,
+          quantity: row.quantity,
           created_at: row.created_at,
           items: [],
         };

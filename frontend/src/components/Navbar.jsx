@@ -19,15 +19,17 @@ const Navbar = () => {
       </Link>
 
       <div className="flex gap-4 items-center">
-        <Link to="/cart" className="hover:text-gray-300">
-          Cart
-        </Link>
+        {user.role === "customer" && (
+          <Link to="/cart" className="hover:text-gray-300">
+            Cart
+          </Link>
+        )}
 
-        {user && user.role === "admin" && (
+        {/* {user && user.role === "admin" && (
           <Link to="/admin" className="hover:text-gray-300">
             Admin Dashboard
           </Link>
-        )}
+        )} */}
 
         {token ? (
           <>
